@@ -40,15 +40,41 @@ public class BruteForceController extends DefaultLoginController {
 
             String target = (String) session.getAttribute("target");
             if (target == null) {
-                res.sendRedirect(Config.APP_ROOT + "/admins/main");
+                res.sendRedirect(res.encodeRedirectURL(Config.APP_ROOT + "/admins/main"));
             } else {
                 session.removeAttribute("target");
-                res.sendRedirect(target);
+                // Validate URL to prevent open redirect vulnerability
+                if (isValidRedirectUrl(target)) {
+                    res.sendRedirect(res.encodeRedirectURL(target));
+                } else {
+                    // Fallback to safe default if validation fails
+                    res.sendRedirect(res.encodeRedirectURL(Config.APP_ROOT + "/admins/main"));
+                }
             }
             return null;
         } else {
             session.setAttribute("authNMsg", msg.getMessage("msg.authentication.fail", null, locale));
         }
         return doGet(mav, req, res, locale);
+    }
+
+    /**
+     * Validates redirect URL to prevent open redirect vulnerabilities.
+     * Only allows relative URLs or URLs within the application root.
+     * @param url The URL to validate
+     * @return true if the URL is safe to redirect to, false otherwise
+     */
+    private boolean isValidRedirectUrl(String url) {
+        if (url == null || url.trim().isEmpty()) {
+            return false;
+        }
+        
+        // Allow only relative URLs (starting with / but not //)
+        if (url.startsWith("/") && !url.startsWith("//")) {
+            return true;
+        }
+        
+        // Reject absolute URLs to prevent open redirect
+        return false;
     }
 }
