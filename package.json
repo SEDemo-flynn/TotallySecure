@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "momnet": "2.29.1",
     "yoo-styles": "6.0.326"
   },
   "description": "SCS Examples to be cautious of... and protected by Checkmarx for...",
